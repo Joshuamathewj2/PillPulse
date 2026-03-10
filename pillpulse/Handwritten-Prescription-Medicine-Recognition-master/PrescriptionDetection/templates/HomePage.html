@@ -1,0 +1,27 @@
+{% extends 'basePage.html' %}
+
+{% block title %}
+	 Doctors Word 
+{% endblock title %}
+
+{% block body %}
+	<div class="jumbotron p-4 p-md-5 text-white rounded bg-dark my-3 mx-5">
+	    <div class="col-md-6 px-0">
+	      <h1 class="display-4 font-italic">Convert Your Prescriptions To Text</h1>
+	      <p class="lead my-3">Upload your doctors prescriptions and get it translated digitally with us</p>
+	      <form method="post" enctype="multipart/form-data">
+	      	{% csrf_token %}
+	      	<div class="custom-file">
+  				<input type="file" class="custom-file-input" id="customFile" name="document">
+ 				 <label class="custom-file-label" for="customFile">{{ufo}}</label><br><br>
+ 				<button class="btn btn-secondary" type="submit">Upload</button>
+				
+	      	<!-- <input type="file"  name="document"> -->
+	      	
+	      </form>
+	      </div>
+	      <br>	
+	      <p class="lead mb-0"><a href="/snip/" class="text-white font-weight-bold">Process It!!</a></p>
+	    </div>
+	  </div>
+{% endblock body %}

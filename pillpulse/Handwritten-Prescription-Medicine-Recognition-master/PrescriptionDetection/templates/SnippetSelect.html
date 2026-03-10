@@ -1,0 +1,53 @@
+{% extends 'basePage.html' %}
+{% load static %}
+{% block nav %} 
+  
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item">
+        <!-- <a class="nav-link" href="/output/">Process Selected</a> -->
+      </li>
+    </ul>
+  </div>
+{% endblock nav %}
+
+
+
+{% block title %}
+	 SnippetSelect 
+{% endblock title %}
+
+{% block body %}
+
+<div class="album py-5 bg-light" >
+  <form method="post" action="{% url 'ans' %}">
+      {% csrf_token %}
+    <div class="container" >
+      <div class="row">
+{% for imgs in WordSegments %}
+<div class="col-md-4">
+          <div class="card mb-4 shadow-sm" >
+            <img src="/static/preProcess/{{ imgs }}"  class="card-img-top" alt="..." style="max-height: 90px">
+            <div class="card-body">
+              <p class="card-text" >Select Image to Translate.</p>
+              <div class="custom-control custom-checkbox">
+              <input type="checkbox" class="custom-control-input" id="{{imgs}}" value="{{imgs}}" name="checks[]">
+              <label class="custom-control-label" for="{{imgs}}">{{imgs}}</label>
+            </div>
+            </div>
+          </div>
+        </div>
+
+
+{% endfor %}
+        </div>
+        <input type='submit' value="Process Selected" class="btn btn-outline-secondary">
+    </div>  
+    </form>
+
+  </div>
+
+{% endblock body %}
+
+
+<!-- <img src="{% static 'preProcess/test0.PNG' %}"  class="card-img-top" alt="..."> -->

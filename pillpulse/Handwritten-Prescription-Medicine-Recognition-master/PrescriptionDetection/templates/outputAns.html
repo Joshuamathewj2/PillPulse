@@ -1,0 +1,38 @@
+{% extends 'basePage.html' %}
+
+{% block title %}
+   Predicted Name
+{% endblock title %}
+
+
+{% block body %}
+
+<div class="album py-5 bg-light">
+    <div class="container">
+      <div class="row">
+      
+{% for m in a %}
+<div class="col-md-4">
+          <div class="card mb-4 shadow-sm">
+            <img src="/static/ml/{{ m }}"  class="card-img-top" alt="...">
+          </div>
+        </div>
+      </div>
+        {% endfor %}
+        {% for n in b %} 
+        <div class="row">
+        <div class="col-md-4">
+        <div class="card mb-4 shadow-sm">
+          <div class="card-body">
+            <p class="card-text">Your Prescribed Medicine is {{n}}</p>
+          </div>
+        </div>
+      </div>
+{% endfor %}
+
+        </div>
+    </div>  
+  </div>
+
+
+{% endblock body %}
