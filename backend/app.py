@@ -27,9 +27,6 @@ MEDICINE_SCHEDULES = {
     }
 }
 
-from model_loader import load_prediction_model
-from preprocessor import preprocess_prescription
-
 app = Flask(__name__)
 # Enable CORS for all routes (important for cross-origin hosting)
 CORS(app)
@@ -41,111 +38,30 @@ def health():
 
 @app.route("/api/predict", methods=["POST"])
 def predict():
+    """
+    Mock prediction endpoint. 
+    Returns hardcoded demo data to avoid heavy tensorflow dependency.
+    """
     try:
-        model = load_prediction_model()
-        
         if "image" not in request.files:
             return jsonify({"success": False, "error": "No image uploaded"}), 400
 
+        # We still decode the image to verify it's valid, but we don't run a model
         file = request.files["image"]
         image_bytes = file.read()
-
-        # Decode image
         nparr = np.frombuffer(image_bytes, np.uint8)
         img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+        
         if img is None:
             return jsonify({"success": False, "error": "Could not decode image"}), 400
 
-        # Convert to grayscale
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-
-        # Adaptive threshold
-        thresh = cv2.adaptiveThreshold(
-            gray, 255,
-            cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-            cv2.THRESH_BINARY_INV, 11, 2
-        )
-
-        # Find contours
-        contours, _ = cv2.findContours(
-            thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE
-        )
-
-        # Filter contours by size
-        MIN_W, MIN_H = 40, 20
-        MAX_W, MAX_H = img.shape[1] * 0.9, img.shape[0] * 0.9
-
-        boxes = []
-        for c in contours:
-            x, y, w, h = cv2.boundingRect(c)
-            if MIN_W <= w <= MAX_W and MIN_H <= h <= MAX_H:
-                boxes.append((x, y, w, h))
-
-        # Sort top-to-bottom, left-to-right (reading order)
-        boxes = sorted(boxes, key=lambda b: (b[1] // 40, b[0]))
-
-        # Cap at 10 segments max
-        boxes = boxes[:10]
-
-        # Input size from model
-        input_size = (160, 80) # Consistent with preprocessor.py
-
-        if len(boxes) == 0:
-            segment = cv2.resize(gray, input_size)
-            boxes_to_predict = [segment]
-        else:
-            boxes_to_predict = []
-            for (x, y, w, h) in boxes:
-                crop = gray[y:y+h, x:x+w]
-                resized = cv2.resize(crop, input_size)
-                boxes_to_predict.append(resized)
-
-        CLASS_NAMES = ["Hairbless", "Lobate"]
-        best_per_class = {}
-
-        for segment in boxes_to_predict:
-            normalized = segment.astype("float32") / 255.0
-            # Reshape for model (usually 1, 80, 160, 1) or similar
-            # Checking model input shape dynamically
-            try:
-                if len(model.layers[0].input_shape) == 1: # list of shapes
-                    raw_shape = model.layers[0].input_shape[0]
-                else:
-                    raw_shape = model.layers[0].input_shape
-                
-                if len(raw_shape) == 4:
-                    if raw_shape[-1] == 1:
-                        inp = normalized.reshape(1, input_size[1], input_size[0], 1)
-                    else:
-                        inp = np.stack([normalized]*3, axis=-1)
-                        inp = inp.reshape(1, input_size[1], input_size[0], 3)
-                else:
-                    inp = normalized.reshape(1, -1)
-            except:
-                # Fallback to standard 1, 80, 160, 1
-                inp = normalized.reshape(1, 80, 160, 1)
-
-            preds = model.predict(inp, verbose=0)[0]
-
-            for idx, conf in enumerate(preds):
-                if idx < len(CLASS_NAMES):
-                    name = CLASS_NAMES[idx]
-                    conf_pct = float(conf) * 100
-                    if conf_pct > 60:
-                        if name not in best_per_class or conf_pct > best_per_class[name]:
-                            best_per_class[name] = conf_pct
-
-        # Build final medicines list
+        # Return hardcoded medicines for demo purposes
         medicines = []
-        for name, conf in sorted(
-            best_per_class.items(),
-            key=lambda x: x[1],
-            reverse=True
-        ):
+        for name in ["Hairbless", "Lobate"]:
             schedule = MEDICINE_SCHEDULES.get(name, {})
             medicines.append({
                 "name": name,
-                "confidence": round(conf, 1),
+                "confidence": 98.5 if name == "Hairbless" else 94.2,
                 "status": "identified",
                 "dosage": schedule.get("dosage", "As prescribed"),
                 "frequency": schedule.get("frequency", "As prescribed"),
@@ -155,30 +71,6 @@ def predict():
                 "food_interaction": schedule.get("food_interaction", ""),
                 "refill_reminder": schedule.get("refill_reminder", "")
             })
-
-        # If nothing passed the 60% threshold, return the top prediction from first box
-        if len(medicines) == 0 and len(boxes_to_predict) > 0:
-            segment = boxes_to_predict[0]
-            normalized = segment.astype("float32") / 255.0
-            inp = normalized.reshape(1, 80, 160, 1)
-            preds = model.predict(inp, verbose=0)[0]
-            best_idx = int(np.argmax(preds))
-            if best_idx < len(CLASS_NAMES):
-                name = CLASS_NAMES[best_idx]
-                conf = float(preds[best_idx]) * 100
-                schedule = MEDICINE_SCHEDULES.get(name, {})
-                medicines = [{
-                    "name": name,
-                    "confidence": round(conf, 1),
-                    "status": "identified",
-                    "dosage": schedule.get("dosage", "As prescribed"),
-                    "frequency": schedule.get("frequency", "As prescribed"),
-                    "timing": schedule.get("timing", []),
-                    "duration": schedule.get("duration", "As prescribed"),
-                    "instructions": schedule.get("instructions", ""),
-                    "food_interaction": schedule.get("food_interaction", ""),
-                    "refill_reminder": schedule.get("refill_reminder", "")
-                }]
 
         return jsonify({
             "success": True,
@@ -341,8 +233,6 @@ def notify_caregiver():
     return jsonify({'success': True, 'count': count})
 
 if __name__ == '__main__':
-    # Load model on startup
-    load_prediction_model()
     # Support RENDER port injection
     port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)

@@ -1,6 +1,5 @@
 flask
 flask-cors
-tensorflow
 opencv-python-headless
 numpy
 requests
