@@ -6,6 +6,7 @@ import ActionPanel from "./screens/ActionPanel";
 import Dashboard from "./screens/Dashboard";
 import AddMedicine from "./screens/AddMedicine";
 import PrescriptionUpload from "./screens/PrescriptionUpload";
+import CaregiverPortal from "./screens/CaregiverPortal";
 
 export const router = createBrowserRouter([
   {
@@ -35,5 +36,9 @@ export const router = createBrowserRouter([
   {
     path: "/upload-prescription",
     Component: PrescriptionUpload,
+  },
+  {
+    path: "/caregiver",
+    Component: CaregiverPortal,
   },
 ]);

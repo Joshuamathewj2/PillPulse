@@ -35,7 +35,7 @@ export default function ChatAssistant() {
     {
       id: 1,
       type: 'ai',
-      text: "Hello! I'm MedGuardian AI, your personal healthcare assistant. I'm here to help you understand your symptoms and guide you to the right care. How can I assist you today?",
+      text: "Hello! I'm PillPulse AI, your personal healthcare assistant. I'm here to help you understand your symptoms and guide you to the right care. How can I assist you today?",
     },
   ]);
   const [inputText, setInputText] = useState('');
@@ -274,7 +274,7 @@ export default function ChatAssistant() {
             <Button variant="ghost" size="icon" className="shrink-0">
               <Paperclip className="w-5 h-5 text-gray-500" />
             </Button>
-            
+
             <Textarea
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
@@ -306,7 +306,7 @@ export default function ChatAssistant() {
 
         {/* Disclaimer */}
         <p className="text-xs text-center text-gray-500 mt-4">
-          MedGuardian AI provides general health information only. Always consult a healthcare professional for medical advice.
+          PillPulse AI provides general health information only. Always consult a healthcare professional for medical advice.
         </p>
       </div>
     </div>
