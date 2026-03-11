@@ -8,6 +8,7 @@ import Onboarding from './screens/Onboarding';
 import DevModeWidget from './components/DevModeWidget';
 import SplashScreen from './components/SplashScreen';
 
+
 export default function App() {
   const [role, setRole] = useState<string | null>(localStorage.getItem('userRole'));
   const [showSplash, setShowSplash] = useState(() => {
