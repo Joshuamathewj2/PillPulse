@@ -15,9 +15,12 @@ import {
 import { motion } from 'motion/react';
 import { Button } from '../components/ui/button';
 import { toast } from 'sonner';
+import { useState } from 'react';
+import HospitalMap from '../components/HospitalMap';
 
 export default function ActionPanel() {
   const navigate = useNavigate();
+  const [isMapOpen, setIsMapOpen] = useState(false);
 
   const handleAction = (actionName: string) => {
     toast.success(`${actionName} action initiated`, {
@@ -70,7 +73,7 @@ export default function ActionPanel() {
               title="Find Hospital"
               description="Locate nearby medical facilities and clinics"
               buttonText="View Map"
-              onClick={() => handleAction('Find Hospital')}
+              onClick={() => setIsMapOpen(true)}
             />
             <ActionCard
               icon={Lightbulb}
@@ -251,6 +254,8 @@ export default function ActionPanel() {
           </Button>
         </div>
       </div>
+
+      {isMapOpen && <HospitalMap onClose={() => setIsMapOpen(false)} />}
     </div>
   );
 }
