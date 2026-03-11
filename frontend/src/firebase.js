@@ -13,9 +13,18 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const messaging = getMessaging(app);
 
+import { escalationEngine } from './escalationEngine';
+
 export const requestPermissionAndGetToken = async () => {
     const permission = await Notification.requestPermission();
     if (permission !== 'granted') return null;
+
+    // Ensure service worker is ready and pass to escalation engine
+    if ('serviceWorker' in navigator) {
+        const registration = await navigator.serviceWorker.ready;
+        escalationEngine.setSWRegistration(registration);
+    }
+
     return await getToken(messaging, {
         vapidKey: "BO25PH8Vr3vIMZictymm_kR7R9XQNeF40tVBwdHXU6CDkzMkC-vry-Sk9fkVCvecIEq7dATrWpXR-TUYhCuIGIA"
     });

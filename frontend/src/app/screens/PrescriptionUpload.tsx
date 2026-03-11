@@ -210,13 +210,13 @@ export default function PrescriptionUpload() {
 
     const showLocalNotification = useCallback((title: string, body: string) => {
         if (notifSupported && Notification.permission === 'granted') {
-            new Notification(title, {
+            escalationEngine.showNotification(title, {
                 body,
                 icon: '/logo.png',
                 badge: '/logo.png',
                 vibrate: [200, 100, 200],
                 requireInteraction: true
-            } as NotificationOptions);
+            });
         }
         // Also show in-app toast
         const id = ++toastIdCounter.current;

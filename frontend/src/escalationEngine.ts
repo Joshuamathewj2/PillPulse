@@ -43,6 +43,7 @@ export class EscalationEngine {
   caregivers: Caregiver[] = [];
   onDoseLogUpdate: ((log: DoseEntry[]) => void) | null = null;
   skipCounts: Record<string, number> = {};
+  swRegistration: ServiceWorkerRegistration | null = null;
 
   constructor() {
     try {
@@ -50,6 +51,35 @@ export class EscalationEngine {
       this.doseLog = stored;
     } catch (_e) {
       this.doseLog = [];
+    }
+    
+    // Auto-register service worker on load if available
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.ready.then(reg => {
+        this.swRegistration = reg;
+      });
+    }
+  }
+
+  setSWRegistration(reg: ServiceWorkerRegistration) {
+    this.swRegistration = reg;
+  }
+
+  showNotification(title: string, options: any) {
+    if (!('Notification' in window) || Notification.permission !== 'granted') return;
+
+    try {
+      if (this.swRegistration) {
+        this.swRegistration.showNotification(title, options);
+      } else {
+        new Notification(title, options);
+      }
+    } catch (e) {
+      console.error('Notification error:', e);
+      // Fallback for mobile where new Notification() might fail
+      if (this.swRegistration) {
+         this.swRegistration.showNotification(title, options);
+      }
     }
   }
 
@@ -105,14 +135,12 @@ export class EscalationEngine {
 
   fireDoseNotification(medicineId: string, medicineName: string, timingSlot: string, caregivers: Caregiver[]) {
     if ('Notification' in window && Notification.permission === 'granted') {
-      try {
-        new Notification(`\ud83d\udc8a Time for ${medicineName}`, {
-          body: `${timingSlot} — Tap to confirm`,
-          icon: '/logo.png',
-          requireInteraction: true,
-          tag: `dose_${medicineId}_${timingSlot}`,
-        });
-      } catch (_e) { /* ignore */ }
+      this.showNotification(`\ud83d\udc8a Time for ${medicineName}`, {
+        body: `${timingSlot} — Tap to confirm`,
+        icon: '/logo.png',
+        requireInteraction: true,
+        tag: `dose_${medicineId}_${timingSlot}`,
+      });
     }
 
     window.dispatchEvent(new CustomEvent('pillpulse-dose-alert', {
@@ -149,13 +177,11 @@ export class EscalationEngine {
     });
 
     if ('Notification' in window && Notification.permission === 'granted') {
-      try {
-        new Notification('\u2705 Dose Confirmed', {
-          body: `${medicineName} marked as taken. Great job!`,
-          icon: '/logo.png',
-          tag: `confirm_${medicineId}`,
-        });
-      } catch (_e) { /* ignore */ }
+      this.showNotification('\u2705 Dose Confirmed', {
+        body: `${medicineName} marked as taken. Great job!`,
+        icon: '/logo.png',
+        tag: `confirm_${medicineId}`,
+      });
     }
   }
 
@@ -178,13 +204,11 @@ export class EscalationEngine {
     );
 
     if ('Notification' in window && Notification.permission === 'granted') {
-      try {
-        new Notification('\u23f0 Snoozed', {
-          body: `Reminder for ${medicineName} in ${devMode ? '5 seconds' : '15 minutes'}`,
-          icon: '/logo.png',
-          tag: `snooze_${medicineId}`,
-        });
-      } catch (_e) { /* ignore */ }
+      this.showNotification('\u23f0 Snoozed', {
+        body: `Reminder for ${medicineName} in ${devMode ? '5 seconds' : '15 minutes'}`,
+        icon: '/logo.png',
+        tag: `snooze_${medicineId}`,
+      });
     }
   }
 
@@ -207,13 +231,11 @@ export class EscalationEngine {
     if (skipCount < SKIP_LIMIT) {
       const remaining = SKIP_LIMIT - skipCount;
       if ('Notification' in window && Notification.permission === 'granted') {
-        try {
-          new Notification('\u26a0\ufe0f Dose Skipped', {
-            body: `${medicineName} skipped. Skip ${remaining} more time(s) and your caregiver will be notified.`,
-            icon: '/logo.png',
-            tag: `skip_${medicineId}`
-          });
-        } catch (_e) { /* ignore */ }
+        this.showNotification('\u26a0\ufe0f Dose Skipped', {
+          body: `${medicineName} skipped. Skip ${remaining} more time(s) and your caregiver will be notified.`,
+          icon: '/logo.png',
+          tag: `skip_${medicineId}`
+        });
       }
       const delay = getEscalationDelay();
       this._setTimer(
@@ -232,13 +254,11 @@ export class EscalationEngine {
 
   escalateToCaregivers(medicineId: string, medicineName: string, timingSlot: string, caregivers: Caregiver[], skipCount: number) {
     if ('Notification' in window && Notification.permission === 'granted') {
-      try {
-        new Notification('\ud83d\udce2 Caregiver Notified', {
-          body: `You've skipped ${medicineName} ${skipCount} times. Your caregiver has been alerted.`,
-          icon: '/logo.png',
-          requireInteraction: true
-        });
-      } catch (_e) { /* ignore */ }
+      this.showNotification('\ud83d\udce2 Caregiver Notified', {
+        body: `You've skipped ${medicineName} ${skipCount} times. Your caregiver has been alerted.`,
+        icon: '/logo.png',
+        requireInteraction: true
+      });
     }
     caregivers.forEach(caregiver => {
       const patientCode = localStorage.getItem('pillpulse_patient_code') || '';
@@ -263,14 +283,12 @@ export class EscalationEngine {
 
     if (level === 1) {
       if ('Notification' in window && Notification.permission === 'granted') {
-        try {
-          new Notification('\u26a0\ufe0f Reminder: ${medicineName}', {
-            body: `You haven't confirmed your ${medicineName} dose. Please take your medicine now.`,
-            icon: '/logo.png',
-            requireInteraction: true,
-            tag: `reminder_${medicineId}_${timingSlot}`,
-          });
-        } catch (_e) { /* ignore */ }
+        this.showNotification('\u26a0\ufe0f Reminder: ${medicineName}', {
+          body: `You haven't confirmed your ${medicineName} dose. Please take your medicine now.`,
+          icon: '/logo.png',
+          requireInteraction: true,
+          tag: `reminder_${medicineId}_${timingSlot}`,
+        });
       }
       window.dispatchEvent(new CustomEvent('pillpulse-dose-alert', {
         detail: { type: 'reminder', level: 1, medicineId, medicineName, timingSlot, caregivers, message: `Reminder: You haven't confirmed your ${medicineName} dose`, actions: ['taken', 'skip'] }
