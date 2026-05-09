@@ -1,0 +1,374 @@
+/* ============================================================
+   styles.css — Focus Shield
+   Dark, minimal, engineering-grade aesthetic.
+   Font: "Space Mono" for monospace timer feel +
+         "Syne" for headings — both via Google Fonts inline.
+   ============================================================ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@600;700;800&family=JetBrains+Mono:wght@500;700;800&display=swap');
+
+/* ── Custom Properties ─────────────────────────────────────── */
+:root {
+  --bg:           #0d0d0f;
+  --surface:      #141417;
+  --surface-2:    #1c1c21;
+  --border:       #2a2a32;
+  --accent:       #7c6fcd;      /* indigo-violet */
+  --accent-glow:  rgba(124,111,205,.35);
+  --accent-soft:  rgba(124,111,205,.12);
+  --text:         #e8e8f0;
+  --text-muted:   #5a5a72;
+  --danger:       #e05c5c;
+  --danger-soft:  rgba(224,92,92,.12);
+  --green:        #4ade80;
+  --radius:       10px;
+  --radius-sm:    6px;
+  --font-sans:    'Inter', sans-serif;
+  --font-heading: 'Outfit', sans-serif;
+  --font-mono:    'JetBrains Mono', monospace;
+}
+
+/* ── Reset ─────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  width: 380px;
+  min-height: 200px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* ── Popup wrapper ─────────────────────────────────────────── */
+.popup-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+}
+
+/* ── Header ────────────────────────────────────────────────── */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-bottom: 4px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-heading);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  color: var(--text);
+}
+.logo-icon { font-size: 18px; }
+.logo strong { color: var(--accent); font-weight: 800; }
+
+.session-badge {
+  font-size: 10px;
+  color: var(--text-muted);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 3px 9px;
+  letter-spacing: .5px;
+}
+
+/* ── Cards ─────────────────────────────────────────────────── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.card-title {
+  font-family: var(--font-heading);
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+  color: var(--text);
+  margin-bottom: 2px;
+}
+
+.card-sub {
+  font-family: var(--font-sans);
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-top: 0;
+  transition: color .3s;
+}
+
+/* ── Toggle switch ─────────────────────────────────────────── */
+.toggle-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.switch { position: relative; display: inline-block; width: 44px; height: 24px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider {
+  position: absolute; inset: 0;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background .25s, border-color .25s, box-shadow .25s;
+}
+.slider::before {
+  content: '';
+  position: absolute;
+  width: 16px; height: 16px;
+  left: 3px; top: 3px;
+  background: var(--text-muted);
+  border-radius: 50%;
+  transition: transform .25s, background .25s;
+}
+.switch input:checked + .slider {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  box-shadow: 0 0 12px var(--accent-glow);
+}
+.switch input:checked + .slider::before {
+  transform: translateX(20px);
+  background: var(--accent);
+}
+
+/* ── Pomodoro Section ──────────────────────────────────────── */
+.pomodoro-card { align-items: center; position: relative; }
+
+.timer-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  margin-top: 22px; /* offset card title */
+  pointer-events: none;
+  z-index: 2;
+}
+
+.timer-display { position: relative; margin-top: 0; transform: none; left: auto; top: auto; }
+
+/* Timer ring SVG */
+.progress-ring {
+  width: 120px;
+  height: 120px;
+  transform: rotate(-90deg); /* start from top */
+}
+.ring-bg { fill: none; stroke: var(--surface-2); stroke-width: 8; }
+.ring-fill {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 8;
+  stroke-linecap: round;
+  transition: stroke-dashoffset .8s ease, stroke .4s ease;
+  filter: drop-shadow(0 0 6px var(--accent-glow));
+}
+
+/* Position timer text inside the ring */
+.pomodoro-card {
+  position: relative;
+}
+
+.timer-wrap {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Overlay text on top of SVG ring */
+.timer-overlay {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+#timerLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  text-transform: uppercase;
+}
+.timer-digits {
+  font-family: var(--font-mono);
+  font-size: 26px;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -1.5px;
+  line-height: 1.1;
+  text-shadow: 0 0 12px var(--accent-glow);
+}
+
+.pomodoro-controls {
+  display: flex;
+  gap: 8px;
+  width: 100%;
+}
+
+/* ── Buttons ───────────────────────────────────────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border: none;
+  border-radius: var(--radius-sm);
+  padding: 8px 14px;
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  cursor: pointer;
+  transition: all .18s;
+  flex: 1;
+}
+.btn-primary {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 0 16px var(--accent-glow);
+}
+.btn-primary:hover { background: #8d82d8; box-shadow: 0 0 22px var(--accent-glow); }
+.btn-ghost {
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+}
+.btn-ghost:hover { border-color: var(--danger); color: var(--danger); background: var(--danger-soft); }
+.btn-add {
+  background: var(--accent-soft);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  font-size: 18px;
+  font-weight: 400;
+  padding: 0 14px;
+  border-radius: var(--radius-sm);
+  flex: 0 0 auto;
+  cursor: pointer;
+  transition: all .18s;
+}
+.btn-add:hover { background: var(--accent); color: #fff; }
+
+/* ── Add site row ──────────────────────────────────────────── */
+.add-row {
+  display: flex;
+  gap: 7px;
+}
+
+.site-input {
+  flex: 1;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-family: var(--font-sans);
+  font-weight: 500;
+  font-size: 12px;
+  padding: 8px 11px;
+  outline: none;
+  transition: border-color .2s, box-shadow .2s;
+}
+.site-input::placeholder { color: var(--text-muted); }
+.site-input:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+.site-input.shake {
+  animation: shake .35s ease;
+  border-color: var(--danger);
+}
+
+/* ── Blocked sites list ────────────────────────────────────── */
+.sites-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  max-height: 160px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.site-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 7px 10px;
+  transition: border-color .15s;
+  animation: fadeIn .2s ease;
+}
+.site-item:hover { border-color: var(--accent); }
+
+.site-favicon { font-size: 13px; flex-shrink: 0; }
+.site-name { flex: 1; font-size: 12px; color: var(--text); word-break: break-all; }
+
+.remove-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 11px;
+  padding: 2px 5px;
+  border-radius: 4px;
+  transition: color .15s, background .15s;
+  flex-shrink: 0;
+}
+.remove-btn:hover { color: var(--danger); background: var(--danger-soft); }
+
+.empty-msg {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 11px;
+  padding: 16px 0;
+}
+
+/* ── Footer ────────────────────────────────────────────────── */
+.footer {
+  text-align: center;
+  font-size: 10px;
+  color: var(--text-muted);
+  letter-spacing: .5px;
+  padding-top: 2px;
+}
+
+/* ── Animations ────────────────────────────────────────────── */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%       { transform: translateX(-5px); }
+  40%       { transform: translateX(5px); }
+  60%       { transform: translateX(-4px); }
+  80%       { transform: translateX(4px); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

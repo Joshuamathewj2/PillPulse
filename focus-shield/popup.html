@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Focus Shield</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <!-- ═══════════════════════════════════════════════
+       POPUP LAYOUT
+       Chrome popups are capped at 600×600px.
+       We use 380px wide for a clean card feel.
+  ════════════════════════════════════════════════ -->
+  <div class="popup-wrap">
+
+    <!-- ── Header ─────────────────────────────── -->
+    <header class="header">
+      <div class="logo">
+        <span class="logo-icon">🛡</span>
+        <span class="logo-text">Focus<strong>Shield</strong></span>
+      </div>
+      <div class="session-badge" id="sessionBadge" title="Completed sessions">
+        <span id="sessionCount">0</span> sessions
+      </div>
+    </header>
+
+    <!-- ── Focus Toggle ───────────────────────── -->
+    <section class="card toggle-card">
+      <div class="toggle-row">
+        <div>
+          <div class="card-title">Focus Mode</div>
+          <div class="card-sub" id="focusStatus">Distraction blocking is OFF</div>
+        </div>
+        <label class="switch" aria-label="Toggle focus mode">
+          <input type="checkbox" id="focusToggle" />
+          <span class="slider"></span>
+        </label>
+      </div>
+    </section>
+
+    <!-- ── Pomodoro Timer ─────────────────────── -->
+    <section class="card pomodoro-card">
+      <div class="card-title">Pomodoro Timer</div>
+      <div class="card-sub">25 min work · 5 min break</div>
+
+      <div class="timer-display" id="timerDisplay">
+        <span id="timerLabel">READY</span>
+        <span class="timer-digits" id="timerDigits">25:00</span>
+      </div>
+
+      <!-- Circular progress ring -->
+      <svg class="progress-ring" viewBox="0 0 120 120" aria-hidden="true">
+        <circle class="ring-bg" cx="60" cy="60" r="52" />
+        <circle class="ring-fill" id="ringFill" cx="60" cy="60" r="52"
+                stroke-dasharray="327"
+                stroke-dashoffset="327" />
+      </svg>
+
+      <div class="pomodoro-controls">
+        <button class="btn btn-primary" id="pomodoroBtn">▶ Start Session</button>
+        <button class="btn btn-ghost" id="resetBtn" style="display:none;">✕ Stop</button>
+      </div>
+    </section>
+
+    <!-- ── Blocked Sites List ─────────────────── -->
+    <section class="card sites-card">
+      <div class="card-title">Blocked Sites</div>
+
+      <!-- Add site input -->
+      <div class="add-row">
+        <input
+          type="text"
+          id="siteInput"
+          class="site-input"
+          placeholder="e.g. reddit.com"
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button class="btn btn-add" id="addSiteBtn" title="Add site">+</button>
+      </div>
+
+      <!-- Dynamic list rendered by popup.js -->
+      <ul class="sites-list" id="sitesList"></ul>
+    </section>
+
+    <footer class="footer">Focus Shield v1.0 · Stay in the zone.</footer>
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+</html>
